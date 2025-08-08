@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>老板跳游戏</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #f7f7f7;
+    }
+    canvas {
+      display: block;
+      position: absolute;
+      top: 0; left: 0;
+    }
+  </style>
+</head>
+<body>
+<canvas id="canvas" width="800" height="200"></canvas>
+
+<script>
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+
+  let dino = {
+    x: 50,
+    y: 150,
+    vy: 0,
+    gravity: 2,
+    jumpHeight: 30,
+    width: 50,
+    height: 50,
+    isJumping: false
+  };
+
+  let cactus = {
+    x: 800,
+    y: 150,
+    width: 20,
+    height: 50,
+    speed: 10
+  };
+
+  let score = 0;
+  let isGameOver = false;
+
+  function drawBoss() {
+    ctx.fillStyle = "black";
+    ctx.font = "30px Arial";
+    ctx.fillText("老板", dino.x, dino.y + 30); // y+30 让字垂直居中
+  }
+
+  function drawCactus() {
+    ctx.fillStyle = "green";
+    ctx.fillRect(cactus.x, cactus.y, cactus.width, cactus.height);
+  }
+
+  function detectCollision() {
+    return (
+      dino.x < cactus.x + cactus.width &&
+      dino.x + dino.width > cactus.x &&
+      dino.y < cactus.y + cactus.height &&
+      dino.y + dino.height > cactus.y
+    );
+  }
+
+  function drawScore() {
+    ctx.fillStyle = "black";
+    ctx.font = "20px Arial";
+    ctx.fillText("分数：" + score, 650, 30);
+  }
+
+  function update() {
+    if (isGameOver) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Dino jump logic
+    if (dino.isJumping) {
+      dino.vy -= 1;
+      dino.y -= dino.vy;
+      if (dino.y >= 150) {
+        dino.y = 150;
+        dino.vy = 0;
+        dino.isJumping = false;
+      }
+    }
+
+    // Move cactus
+    cactus.x -= cactus.speed;
+    if (cactus.x + cactus.width < 0) {
+      cactus.x = canvas.width + Math.random() * 100;
+      score++;
+    }
+
+    drawBoss();
+    drawCactus();
+    drawScore();
+
+    // Collision check
+    if (detectCollision()) {
+      isGameOver = true;
+      ctx.fillStyle = "red";
+      ctx.font = "40px Arial";
+      ctx.fillText("老板摔倒了！", 280, 100);
+      ctx.font = "20px Arial";
+      ctx.fillText("按 Enter 重新开始", 320, 130);
+    }
+
+    requestAnimationFrame(update);
+  }
+
+  document.addEventListener("keydown", function (e) {
+    if (e.code === "Space" && !dino.isJumping && !isGameOver) {
+      dino.isJumping = true;
+      dino.vy = dino.jumpHeight;
+    } else if (e.code === "Enter" && isGameOver) {
+      // Restart game
+      dino.y = 150;
+      dino.vy = 0;
+      dino.isJumping = false;
+      cactus.x = 800;
+      score = 0;
+      isGameOver = false;
+      update();
+    }
+  });
+
+  update();
+</script>
+</body>
+</html>
